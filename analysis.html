@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AgroVision AI Field Analysis — Upload field images for AI-powered weed detection using deep learning CNN models.">
+  <title>Field Analysis — AgroVision AI</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    /* -- Analysis Page Specific Styles -- */
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      position: relative;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--green-500);
+      background: rgba(34, 197, 94, 0.04);
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.08);
+    }
+    .upload-area.has-image {
+      padding: 12px;
+      border-style: solid;
+      border-color: var(--green-600);
+    }
+    .upload-area .upload-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.08);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+      transition: all var(--transition-base);
+    }
+    .upload-area:hover .upload-icon {
+      background: rgba(34, 197, 94, 0.15);
+      transform: scale(1.05);
+    }
+    .upload-area .upload-icon i { color: var(--green-400); }
+    .upload-area p { color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 4px; }
+    .upload-area .hint { color: var(--text-muted); font-size: 0.78rem; }
+    .upload-area .or-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 16px 0; width: 100%; max-width: 300px;
+      color: var(--text-muted); font-size: 0.78rem;
+    }
+    .upload-area .or-divider::before, .upload-area .or-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border-color);
+    }
+
+    .preview-container {
+      width: 100%; border-radius: var(--radius-md);
+      overflow: hidden; position: relative;
+    }
+    .preview-container img {
+      width: 100%; height: auto; display: block;
+      border-radius: var(--radius-md);
+      max-height: 400px; object-fit: contain;
+      background: rgba(0,0,0,0.3);
+    }
+    .preview-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(10, 15, 13, 0.9));
+      padding: 20px 16px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .preview-file-info { font-size: 0.8rem; color: var(--text-secondary); }
+    .preview-file-info strong { color: var(--text-primary); display: block; margin-bottom: 2px; }
+
+    .step-indicator {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 28px; padding: 0 8px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--text-muted); transition: color var(--transition-base);
+    }
+    .step .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      transition: all var(--transition-base);
+    }
+    .step.active { color: var(--text-accent); }
+    .step.active .step-num {
+      background: var(--gradient-primary);
+      color: white;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+    }
+    .step.completed { color: var(--green-400); }
+    .step.completed .step-num {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green-400);
+    }
+    .step-line {
+      flex: 1; height: 2px; margin: 0 12px;
+      background: rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .step-line .step-line-fill {
+      position: absolute; top: 0; left: 0;
+      height: 100%; width: 0%;
+      background: var(--gradient-primary);
+      transition: width 0.6s ease;
+    }
+
+    .camera-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+    }
+    .camera-modal video {
+      max-width: 90%; max-height: 60vh;
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border-color);
+    }
+    .camera-modal .camera-controls {
+      display: flex; gap: 12px;
+    }
+
+    .scan-history-item {
+      display: flex; gap: 12px; padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      cursor: pointer; transition: all var(--transition-fast);
+      margin-bottom: 8px;
+    }
+    .scan-history-item:hover {
+      border-color: var(--border-color-hover);
+      background: rgba(34, 197, 94, 0.03);
+    }
+    .scan-history-item img {
+      width: 56px; height: 42px;
+      border-radius: 6px; object-fit: cover;
+      flex-shrink: 0;
+    }
+    .scan-history-item .scan-info { flex: 1; }
+    .scan-history-item .scan-info h5 {
+      font-size: 0.8rem; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 2px;
+    }
+    .scan-history-item .scan-info p {
+      font-size: 0.7rem; color: var(--text-muted);
+    }
+
+    .analysis-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .summary-stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+    .summary-stat .val {
+      font-family: 'Outfit'; font-size: 1.4rem;
+      font-weight: 800; margin-bottom: 2px;
+    }
+    .summary-stat .lbl {
+      font-size: 0.7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .detection-list {
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .detection-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 0.82rem;
+    }
+    .detection-item:last-child { border-bottom: none; }
+    .detection-item .det-color {
+      width: 4px; height: 32px;
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .detection-item .det-info { flex: 1; }
+    .detection-item .det-info .det-name {
+      font-weight: 600; color: var(--text-primary);
+      font-size: 0.82rem;
+    }
+    .detection-item .det-info .det-meta {
+      font-size: 0.72rem; color: var(--text-muted);
+    }
+    .detection-item .det-conf {
+      font-weight: 700; font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i data-lucide="leaf"></i></div>
+        <div class="sidebar-brand"><h2>AgroVision</h2><span>Precision AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        <a href="analysis.html" class="nav-item active"><i data-lucide="scan-eye"></i> Field Analysis <span class="badge">AI</span></a>
+        <a href="mapping.html" class="nav-item"><i data-lucide="map-pin"></i> GPS Mapping</a>
+        <div class="nav-section-label">Operations</div>
+        <a href="analytics.html" class="nav-item"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-dot"></div>
+          <div class="status-info"><strong>System Active</strong>All edge devices online</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle"><i data-lucide="menu"></i></button>
+          <div class="breadcrumb">
+            <a href="index.html">AgroVision</a>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            <span class="current">Field Analysis</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-search">
+            <i data-lucide="search" style="width:16px;height:16px;"></i>
+            <input type="text" placeholder="Search fields, zones...">
+          </div>
+          <button class="header-btn"><i data-lucide="bell" style="width:18px;height:18px;"></i><span class="notification-dot"></span></button>
+          <button class="header-btn"><i data-lucide="settings" style="width:18px;height:18px;"></i></button>
+          <div class="user-avatar">TK</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <h1 class="page-title">Field Analysis</h1>
+        <p class="page-subtitle">Upload field images for AI-powered weed detection and precision treatment planning</p>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator" id="stepIndicator">
+          <div class="step active" id="step1">
+            <div class="step-num">1</div>
+            <span>Upload Image</span>
+          </div>
+          <div class="step-line"><div class="step-line-fill" id="line1"></div></div>
+          <div class="step" id="step2">
+            <div class="step-num">2</div>
+            <span>AI Detection</span>
+          </div>
+          <div class="step-line"><div class="step-line-fill" id="line2"></div></div>
+          <div class="step" id="step3">
+            <div class="step-num">3</div>
+            <span>Treatment Plan</span>
+          </div>
+        </div>
+
+        <!-- CNN Model Info Bar -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i data-lucide="brain" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Model</div>
+            <div class="stat-value" style="font-size:1.2rem;">ResNet-50</div>
+            <div class="stat-change up">Deep CNN Architecture</div>
+          </div>
+          <div class="stat-card sky">
+            <div class="stat-icon sky"><i data-lucide="target" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Detection Accuracy</div>
+            <div class="stat-value" style="font-size:1.5rem;" id="modelAccuracy">94.7%</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> Improving</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon amber"><i data-lucide="timer" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Inference Time</div>
+            <div class="stat-value" style="font-size:1.5rem;">23ms</div>
+            <div class="stat-change up">Per frame on edge</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon rose"><i data-lucide="layers" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Total Scans</div>
+            <div class="stat-value" style="font-size:1.5rem;" id="totalScans">0</div>
+            <div class="stat-change up">Images analyzed</div>
+          </div>
+        </div>
+
+        <!-- STEP 1: Upload Section -->
+        <div class="grid-2" id="uploadSection">
+          <!-- Upload Area -->
+          <div class="card" id="uploadCard">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="upload-cloud"></i> Upload Field Image</div>
+              <button class="btn btn-sm btn-ghost" id="btnClearImage" style="display:none;" onclick="clearUpload()">
+                <i data-lucide="x" style="width:14px;height:14px;"></i> Clear
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="upload-area" id="uploadArea">
+                <!-- Default upload state -->
+                <div id="uploadDefault">
+                  <div class="upload-icon"><i data-lucide="image-plus" style="width:32px;height:32px;"></i></div>
+                  <p><strong>Drag & drop</strong> your field image here</p>
+                  <p class="hint">or click anywhere to browse files</p>
+                  <p class="hint" style="margin-top:2px;">Supports: JPG, PNG, WEBP · Max 25MB</p>
+                  <div class="or-divider">or</div>
+                  <div class="flex gap-1" style="justify-content:center;">
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click();">
+                      <i data-lucide="folder-open" style="width:14px;height:14px;"></i> Browse Files
+                    </button>
+                  </div>
+                </div>
+                <!-- Image preview state -->
+                <div id="imagePreview" class="preview-container" style="display:none;">
+                  <img id="previewImg" src="" alt="Uploaded field image">
+                  <div class="preview-overlay">
+                    <div class="preview-file-info">
+                      <strong id="previewFileName">field_image.jpg</strong>
+                      <span id="previewFileSize">2.4 MB · 1920×1080</span>
+                    </div>
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); startAnalysis();">
+                      <i data-lucide="scan-eye" style="width:14px;height:14px;"></i> Analyze Now
+                    </button>
+                  </div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Panel: Scan History + Info -->
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Processing Status Card -->
+            <div class="card" id="processingCard" style="display:none;">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="cpu"></i> AI Processing</div>
+                <span class="tag tag-amber" id="processingStatus">
+                  <span class="spinner" style="width:10px;height:10px;"></span> Running...
+                </span>
+              </div>
+              <div class="card-body" id="processingBody">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Quick Info Card -->
+            <div class="card" id="infoCard">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="info"></i> How it Works</div>
+              </div>
+              <div class="card-body" style="font-size:0.82rem;color:var(--text-secondary);">
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+                  <div class="stat-icon green" style="width:32px;height:32px;min-width:32px;"><i data-lucide="upload" style="width:16px;height:16px;"></i></div>
+                  <div><strong style="color:var(--text-primary);">1. Upload</strong> — Capture or upload a field photograph from your smartphone, drone, or field camera.</div>
+                </div>
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+                  <div class="stat-icon sky" style="width:32px;height:32px;min-width:32px;"><i data-lucide="brain" style="width:16px;height:16px;"></i></div>
+                  <div><strong style="color:var(--text-primary);">2. Detect</strong> — Our ResNet-50 CNN analyzes the image in real-time, identifying weed species with 94.7% accuracy.</div>
+                </div>
+                <div style="display:flex;gap:10px;padding:8px 0;">
+                  <div class="stat-icon amber" style="width:32px;height:32px;min-width:32px;"><i data-lucide="target" style="width:16px;height:16px;"></i></div>
+                  <div><strong style="color:var(--text-primary);">3. Treat</strong> — Get precise herbicide recommendations per zone, reducing chemical usage by up to 67%.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scan History -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="history"></i> Recent Scans</div>
+                <span class="tag tag-sky" id="scanCount">0 scans</span>
+              </div>
+              <div class="card-body" id="scanHistoryBody" style="max-height:220px;overflow-y:auto;">
+                <div class="text-center" style="padding:20px;">
+                  <p class="text-muted" style="font-size:0.82rem;">No scans yet. Upload an image to get started.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Detection Results (shown after analysis) -->
+        <div class="hidden" id="resultsSection" style="margin-top:24px;">
+          <div class="grid-2-1">
+            <!-- Detection Canvas with Overlay -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="scan-eye"></i> Weed Detection Overlay</div>
+                <div class="flex gap-1">
+                  <button class="btn btn-sm btn-ghost" onclick="toggleDetectionBoxes()">
+                    <i data-lucide="eye" style="width:14px;height:14px;"></i> Toggle Boxes
+                  </button>
+                  <button class="btn btn-sm btn-secondary" onclick="rerunAnalysis()">
+                    <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Re-analyze
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="canvas-container" style="position:relative;">
+                  <canvas id="detectionCanvas" width="900" height="500"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detection Results Panel -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="list"></i> Detection Results</div>
+                <span class="tag tag-green" id="resultStatus">● Complete</span>
+              </div>
+              <div class="card-body" id="resultsBody">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="card" style="margin-top:20px;">
+            <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;">
+              <div style="font-size:0.85rem;color:var(--text-secondary);">
+                <strong style="color:var(--text-primary);">Analysis complete.</strong>
+                Review detections above, then generate a treatment plan or start a new scan.
+              </div>
+              <div class="flex gap-1">
+                <button class="btn btn-secondary" onclick="newScan()">
+                  <i data-lucide="plus" style="width:16px;height:16px;"></i> New Scan
+                </button>
+                <button class="btn btn-primary btn-lg" onclick="generateTreatmentPlan()">
+                  <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i> Generate Treatment Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Treatment Plan (shown after generation) -->
+        <div class="hidden" id="treatmentSection" style="margin-top:24px;">
+          <!-- Treatment Summary -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="clipboard-check"></i> Treatment Plan Summary</div>
+              <div class="flex gap-1">
+                <button class="btn btn-sm btn-secondary" onclick="Toast.show('Treatment plan exported as PDF','success')">
+                  <i data-lucide="download" style="width:14px;height:14px;"></i> Export PDF
+                </button>
+              </div>
+            </div>
+            <div class="card-body" id="treatmentSummary">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Treatment Zones -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="grid-3x3"></i> Treatment Zones</div>
+                <div class="flex gap-1">
+                  <span class="tag tag-green">● No Spray</span>
+                  <span class="tag tag-amber">● Low</span>
+                  <span class="tag" style="background:rgba(249,115,22,0.12);color:#f97316;">● Medium</span>
+                  <span class="tag tag-rose">● High</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="canvas-container">
+                  <canvas id="treatmentZoneCanvas" width="600" height="350"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Herbicide Recommendations -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="flask-conical"></i> Herbicide Recommendations</div>
+              </div>
+              <div class="card-body-flush" style="max-height:400px;overflow-y:auto;">
+                <table class="data-table" id="herbicideTable">
+                  <thead>
+                    <tr>
+                      <th>Zone</th>
+                      <th>Severity</th>
+                      <th>Herbicide</th>
+                      <th>Dosage (L/ha)</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="herbicideBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+
+
+  <script src="utils.js"></script>
+  <script src="analysis.js"></script>
+</body>
+</html>

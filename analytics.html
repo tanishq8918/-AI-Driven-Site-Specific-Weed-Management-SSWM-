@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AgroVision AI Analytics — Cost savings analysis, environmental impact metrics, and adaptive learning trends for precision agriculture.">
+  <title>Analytics — AgroVision AI</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i data-lucide="leaf"></i></div>
+        <div class="sidebar-brand"><h2>AgroVision</h2><span>Precision AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        <a href="analysis.html" class="nav-item"><i data-lucide="scan-eye"></i> Field Analysis <span class="badge">AI</span></a>
+        <a href="mapping.html" class="nav-item"><i data-lucide="map-pin"></i> GPS Mapping</a>
+        <div class="nav-section-label">Operations</div>
+        <a href="analytics.html" class="nav-item active"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-dot"></div>
+          <div class="status-info"><strong>System Active</strong>All edge devices online</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle"><i data-lucide="menu"></i></button>
+          <div class="breadcrumb">
+            <a href="index.html">AgroVision</a>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            <span class="current">Analytics</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-search">
+            <i data-lucide="search" style="width:16px;height:16px;"></i>
+            <input type="text" placeholder="Search metrics...">
+          </div>
+          <button class="header-btn"><i data-lucide="bell" style="width:18px;height:18px;"></i><span class="notification-dot"></span></button>
+          <button class="header-btn"><i data-lucide="settings" style="width:18px;height:18px;"></i></button>
+          <div class="user-avatar">TK</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="flex-between mb-3">
+          <div>
+            <h1 class="page-title">Analytics & Insights</h1>
+            <p class="page-subtitle">Comprehensive analysis of cost savings, environmental impact, and AI model performance</p>
+          </div>
+          <div class="flex gap-1">
+            <button class="btn btn-secondary" onclick="Toast.show('Report exported as PDF','success')"><i data-lucide="download" style="width:16px;height:16px;"></i> Export Report</button>
+            <button class="btn btn-primary" onclick="refreshAnalytics()"><i data-lucide="refresh-cw" style="width:16px;height:16px;"></i> Refresh</button>
+          </div>
+        </div>
+
+        <!-- Impact Stats -->
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i data-lucide="leaf" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Chemical Reduction</div>
+            <div class="stat-value" id="statChemReduction">0%</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> vs conventional</div>
+          </div>
+          <div class="stat-card sky">
+            <div class="stat-icon sky"><i data-lucide="piggy-bank" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Total Savings</div>
+            <div class="stat-value" id="statSavings">$0</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> This season</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Biodiversity Score</div>
+            <div class="stat-value" id="statBiodiversity">0</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +12 points</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon rose"><i data-lucide="brain" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Model Accuracy</div>
+            <div class="stat-value" id="statModelAcc">0%</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> Adaptive learning</div>
+          </div>
+        </div>
+
+        <!-- Cost Analysis -->
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="line-chart"></i> Cost Savings Analysis</div>
+              <div class="tabs" style="border:none;margin:0;">
+                <button class="tab active" onclick="switchCostView('monthly',this)">Monthly</button>
+                <button class="tab" onclick="switchCostView('seasonal',this)">Seasonal</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div style="height:300px;">
+                <canvas id="costAnalysisChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Savings Breakdown -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="pie-chart"></i> Savings Breakdown</div>
+            </div>
+            <div class="card-body">
+              <div style="height:220px;">
+                <canvas id="savingsBreakdownChart"></canvas>
+              </div>
+              <div class="mt-2" style="display:flex;flex-direction:column;gap:8px;">
+                <div class="flex-between">
+                  <span style="font-size:0.82rem;color:var(--text-secondary);">Herbicide Reduction</span>
+                  <span style="font-weight:700;color:var(--green-400);">$12,840</span>
+                </div>
+                <div class="flex-between">
+                  <span style="font-size:0.82rem;color:var(--text-secondary);">Labor Optimization</span>
+                  <span style="font-weight:700;color:var(--sky-400);">$4,200</span>
+                </div>
+                <div class="flex-between">
+                  <span style="font-size:0.82rem;color:var(--text-secondary);">Fuel Savings</span>
+                  <span style="font-weight:700;color:var(--amber-400);">$1,380</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Environmental Impact -->
+        <div class="flex-between mb-2 mt-3">
+          <h2 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="leaf" style="width:20px;height:20px;color:var(--green-400);"></i>
+            Environmental Impact Metrics
+          </h2>
+        </div>
+
+        <div class="grid-3" id="envMetrics">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Adaptive Learning + Seasonal -->
+        <div class="grid-2" style="margin-top:4px;">
+          <!-- Adaptive Learning Trends -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="brain"></i> Adaptive Learning — Accuracy Over Time</div>
+            </div>
+            <div class="card-body">
+              <div style="height:280px;">
+                <canvas id="accuracyTrendChart"></canvas>
+              </div>
+              <div class="flex-between mt-2" style="padding:4px 0;">
+                <div>
+                  <span style="font-size:0.78rem;color:var(--text-muted);">Start: </span>
+                  <span style="font-weight:600;">78.2%</span>
+                </div>
+                <div>
+                  <span style="font-size:0.78rem;color:var(--text-muted);">Current: </span>
+                  <span style="font-weight:700;color:var(--green-400);">94.7%</span>
+                </div>
+                <div>
+                  <span style="font-size:0.78rem;color:var(--text-muted);">Improvement: </span>
+                  <span style="font-weight:700;color:var(--green-400);">+16.5%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seasonal Comparison -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="calendar"></i> Seasonal Comparison</div>
+            </div>
+            <div class="card-body">
+              <div style="height:280px;">
+                <canvas id="seasonalChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detection Performance -->
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="bar-chart-3"></i> Detection Performance by Species</div>
+          </div>
+          <div class="card-body">
+            <div style="height:300px;">
+              <canvas id="speciesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="analytics.js"></script>
+</body>
+</html>

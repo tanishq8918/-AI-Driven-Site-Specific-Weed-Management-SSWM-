@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AgroVision AI — Precision weed management platform reducing chemical footprints through AI-powered site-specific herbicide application.">
+  <title>AgroVision AI — Smart Precision Agriculture</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i data-lucide="leaf"></i></div>
+        <div class="sidebar-brand">
+          <h2>AgroVision</h2>
+          <span>Precision AI</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item active" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="analysis.html" class="nav-item" id="nav-analysis">
+          <i data-lucide="scan-eye"></i> Field Analysis
+          <span class="badge">AI</span>
+        </a>
+        <a href="mapping.html" class="nav-item" id="nav-mapping">
+          <i data-lucide="map-pin"></i> GPS Mapping
+        </a>
+
+        <div class="nav-section-label">Operations</div>
+        <a href="analytics.html" class="nav-item" id="nav-analytics">
+          <i data-lucide="bar-chart-3"></i> Analytics
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-dot"></div>
+          <div class="status-info">
+            <strong>System Active</strong>
+            All edge devices online
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle"><i data-lucide="menu"></i></button>
+          <div class="breadcrumb">
+            <a href="index.html">AgroVision</a>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            <span class="current">Dashboard</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-search">
+            <i data-lucide="search" style="width:16px;height:16px;"></i>
+            <input type="text" placeholder="Search fields, zones...">
+          </div>
+          <button class="header-btn" title="Notifications">
+            <i data-lucide="bell" style="width:18px;height:18px;"></i>
+            <span class="notification-dot"></span>
+          </button>
+          <button class="header-btn" title="Settings">
+            <i data-lucide="settings" style="width:18px;height:18px;"></i>
+          </button>
+          <div class="user-avatar" title="Tanishq">TK</div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Real-time overview of your precision agriculture operations</p>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Fields Monitored</div>
+            <div class="stat-value" id="statFields">0</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +2 this week</div>
+          </div>
+          <div class="stat-card sky">
+            <div class="stat-icon sky"><i data-lucide="droplets" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Chemical Reduction</div>
+            <div class="stat-value" id="statChemical">0%</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +4.2% vs last month</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon amber"><i data-lucide="brain" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">AI Accuracy</div>
+            <div class="stat-value" id="statAccuracy">0%</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +1.8% improvement</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon rose"><i data-lucide="piggy-bank" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Cost Saved</div>
+            <div class="stat-value" id="statCost">₹0</div>
+            <div class="stat-change up"><i data-lucide="trending-up" style="width:14px;height:14px;"></i> +₹2,400 this season</div>
+          </div>
+        </div>
+
+        <!-- Main Grid Row -->
+        <div class="grid-2-1">
+          <!-- Recent Scans -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="history"></i> Recent Scans</div>
+              <a href="analysis.html" class="btn btn-sm btn-primary"><i data-lucide="plus" style="width:14px;height:14px;"></i> New Scan</a>
+            </div>
+            <div class="card-body" id="recentScansCard">
+              <div class="text-center" style="padding:40px 20px;">
+                <i data-lucide="scan-eye" style="width:48px;height:48px;color:var(--text-muted);margin-bottom:12px;display:block;"></i>
+                <p style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">No scans yet</p>
+                <p class="text-muted" style="font-size:0.8rem;margin-top:4px;">Upload a field image to start your first analysis</p>
+                <a href="analysis.html" class="btn btn-primary mt-2"><i data-lucide="upload" style="width:16px;height:16px;"></i> Start First Scan</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Activity -->
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Quick Actions -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="zap"></i> Quick Actions</div>
+              </div>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+                <a href="analysis.html" class="btn btn-primary btn-lg" style="justify-content:center;"><i data-lucide="scan-eye" style="width:18px;height:18px;"></i> Start Field Scan</a>
+                <a href="mapping.html" class="btn btn-secondary" style="justify-content:center;"><i data-lucide="map-pin" style="width:16px;height:16px;"></i> View Field Map</a>
+                <a href="analytics.html" class="btn btn-secondary" style="justify-content:center;"><i data-lucide="file-bar-chart" style="width:16px;height:16px;"></i> Generate Report</a>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="activity"></i> Recent Activity</div>
+              </div>
+              <div class="card-body" id="liveActivity" style="max-height:180px;overflow-y:auto;">
+                <p class="text-muted text-center" style="font-size:0.82rem;padding:16px;">No activity yet. Run a scan to see updates here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2">
+          <!-- Cost Comparison Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="line-chart"></i> Cost Comparison</div>
+              <span class="tag tag-green">↓ 62% savings</span>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;">
+                <canvas id="costChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detection Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="pie-chart"></i> Weed Distribution</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;">
+                <canvas id="weedDistChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Detections Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="list"></i> Recent Detections</div>
+            <a href="analysis.html" class="btn btn-sm btn-ghost">View All <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+          </div>
+          <div class="card-body-flush">
+            <table class="data-table" id="detectionsTable">
+              <thead>
+                <tr>
+                  <th>Detection ID</th>
+                  <th>Species</th>
+                  <th>Confidence</th>
+                  <th>Severity</th>
+                  <th>Recommended Herbicide</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="detectionsBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

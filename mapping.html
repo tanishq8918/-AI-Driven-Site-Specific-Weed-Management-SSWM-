@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AgroVision AI GPS Field Mapping — Interactive satellite mapping with treatment zone overlays and field boundary management.">
+  <title>GPS Mapping — AgroVision AI</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .map-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .map-control-btn {
+      background: rgba(10, 15, 13, 0.9);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      backdrop-filter: blur(8px);
+    }
+    .map-control-btn:hover {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green-400);
+      border-color: var(--green-500);
+    }
+    .map-control-btn.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--green-400);
+      border-color: var(--green-500);
+    }
+    .coords-display {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      z-index: 1000;
+      background: rgba(10, 15, 13, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      backdrop-filter: blur(8px);
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace, 'Inter';
+      color: var(--text-secondary);
+      display: flex;
+      gap: 16px;
+    }
+    .coords-display span { color: var(--green-400); font-weight: 600; }
+    .field-info-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .field-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+    }
+    .field-info-row:last-child { border-bottom: none; }
+    .field-info-row .label { color: var(--text-muted); }
+    .field-info-row .value { color: var(--text-primary); font-weight: 600; }
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(10, 15, 13, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      z-index: 1000;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      backdrop-filter: blur(8px);
+    }
+    .heatmap-legend .scale {
+      width: 120px;
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #22c55e, #fbbf24, #f97316, #f43f5e);
+    }
+  </style>
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo"><i data-lucide="leaf"></i></div>
+        <div class="sidebar-brand"><h2>AgroVision</h2><span>Precision AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="index.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        <a href="analysis.html" class="nav-item"><i data-lucide="scan-eye"></i> Field Analysis <span class="badge">AI</span></a>
+        <a href="mapping.html" class="nav-item active"><i data-lucide="map-pin"></i> GPS Mapping</a>
+        <div class="nav-section-label">Operations</div>
+        <a href="analytics.html" class="nav-item"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-dot"></div>
+          <div class="status-info"><strong>System Active</strong>All edge devices online</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle"><i data-lucide="menu"></i></button>
+          <div class="breadcrumb">
+            <a href="index.html">AgroVision</a>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            <span class="current">GPS Mapping</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-search">
+            <i data-lucide="search" style="width:16px;height:16px;"></i>
+            <input type="text" placeholder="Search fields, zones...">
+          </div>
+          <button class="header-btn"><i data-lucide="bell" style="width:18px;height:18px;"></i><span class="notification-dot"></span></button>
+          <button class="header-btn"><i data-lucide="settings" style="width:18px;height:18px;"></i></button>
+          <div class="user-avatar">TK</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <h1 class="page-title">GPS Field Mapping</h1>
+        <p class="page-subtitle">Interactive satellite mapping with treatment zone overlays and field management</p>
+
+        <!-- Stats Bar -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="stat-card green">
+            <div class="stat-icon green"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Total Fields</div>
+            <div class="stat-value" style="font-size:1.5rem;" id="totalFields">0</div>
+            <div class="stat-change up">Mapped & monitored</div>
+          </div>
+          <div class="stat-card sky">
+            <div class="stat-icon sky"><i data-lucide="maximize" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Total Area</div>
+            <div class="stat-value" style="font-size:1.5rem;" id="totalArea">0 ha</div>
+            <div class="stat-change up">Under precision mgmt</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon amber"><i data-lucide="grid-3x3" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Active Zones</div>
+            <div class="stat-value" style="font-size:1.5rem;" id="activeZones">0</div>
+            <div class="stat-change up">Treatment zones</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon rose"><i data-lucide="calendar-check" style="width:22px;height:22px;"></i></div>
+            <div class="stat-label">Last Scan</div>
+            <div class="stat-value" style="font-size:1.1rem;">3 min ago</div>
+            <div class="stat-change up">Real-time updates</div>
+          </div>
+        </div>
+
+        <!-- Map + Info Panel -->
+        <div class="grid-2-1">
+          <!-- Map -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="map"></i> Satellite Field View</div>
+              <div class="flex gap-1">
+                <button class="btn btn-sm btn-secondary" id="btnAddField" onclick="startDrawField()"><i data-lucide="pencil" style="width:14px;height:14px;"></i> Draw Field</button>
+                <button class="btn btn-sm btn-primary" id="btnToggleHeatmap" onclick="toggleHeatmap()"><i data-lucide="flame" style="width:14px;height:14px;"></i> Heatmap</button>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0;position:relative;">
+              <div class="map-container" id="fieldMap" style="height:520px;">
+                <!-- Leaflet map -->
+              </div>
+              <div class="coords-display" id="coordsDisplay">
+                Lat: <span id="coordLat">28.6139</span> &nbsp; Lng: <span id="coordLng">77.2090</span> &nbsp; Zoom: <span id="coordZoom">14</span>
+              </div>
+              <div class="heatmap-legend">
+                <span>Clean</span>
+                <div class="scale"></div>
+                <span>High Density</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Field Info Panel -->
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="info"></i> Field Details</div>
+              </div>
+              <div class="field-info-panel" id="fieldInfoPanel">
+                <div class="field-info-row"><span class="label">Field Name</span><span class="value">North Sector Alpha</span></div>
+                <div class="field-info-row"><span class="label">Crop Type</span><span class="value">Soybean</span></div>
+                <div class="field-info-row"><span class="label">Area</span><span class="value">48.2 hectares</span></div>
+                <div class="field-info-row"><span class="label">GPS Center</span><span class="value" style="font-size:0.78rem;font-family:monospace;">28.614°N, 77.209°E</span></div>
+                <div class="field-info-row"><span class="label">Last Scan</span><span class="value">3 min ago</span></div>
+                <div class="field-info-row"><span class="label">Weed Coverage</span><span class="value text-amber">18.4%</span></div>
+                <div class="field-info-row"><span class="label">Status</span><span class="tag tag-green">Monitored</span></div>
+              </div>
+            </div>
+
+            <!-- Field List -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="list"></i> All Fields</div>
+              </div>
+              <div class="card-body-flush" id="fieldList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Treatment History -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i data-lucide="history"></i> Treatment History</div>
+              </div>
+              <div class="card-body" id="treatmentHistory">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="mapping.js"></script>
+</body>
+</html>
